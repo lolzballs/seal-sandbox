@@ -38,8 +38,17 @@ class ckks_vector {
 public:
 	ckks_vector(const std::shared_ptr<seal::SEALContext>,
 			const seal::PublicKey &, const plain_vector &);
+	ckks_vector(const std::shared_ptr<seal::SEALContext> ctx,
+			size_t dim, const std::vector<seal::Ciphertext> cts)
+		: seal_ctx(ctx),
+		  evaluator(*ctx),
+		  dim(dim),
+		  cts(cts) {}
 	
 	plain_vector decrypt(const seal::SecretKey &) const;
+
+	ckks_vector operator+(const ckks_vector &v) const;
+	ckks_vector operator*(const ckks_vector &v) const;
 private:
 	std::shared_ptr<seal::SEALContext> seal_ctx;
 	seal::Evaluator evaluator;

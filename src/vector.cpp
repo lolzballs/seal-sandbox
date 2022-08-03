@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <gsl/gsl>
 
 #include "vector.h"
@@ -64,4 +65,36 @@ plain_vector ckks_vector::decrypt(const seal::SecretKey &sk) const {
 	}
 
 	return plain_vector(seal_ctx, std::move(pts), dim);
+}
+
+ckks_vector ckks_vector::operator+(const ckks_vector &v) const {
+	assert(dim == v.dim);
+
+	std::vector<seal::Ciphertext> results;
+	for (size_t i = 0; i < cts.size(); i++) {
+		const seal::Ciphertext &ct_a = cts[i];
+		const seal::Ciphertext &ct_b = v.cts[i];
+
+		seal::Ciphertext ct;
+		evaluator.add(ct_a, ct_b, ct);
+		results.emplace_back(std::move(ct));
+	}
+
+	return ckks_vector(seal_ctx, dim, std::move(results));
+}
+
+ckks_vector ckks_vector::operator*(const ckks_vector &v) const {
+	assert(dim == v.dim);
+
+	std::vector<seal::Ciphertext> results;
+	for (size_t i = 0; i < cts.size(); i++) {
+		const seal::Ciphertext &ct_a = cts[i];
+		const seal::Ciphertext &ct_b = v.cts[i];
+
+		seal::Ciphertext ct;
+		evaluator.multiply(ct_a, ct_b, ct);
+		results.emplace_back(std::move(ct));
+	}
+
+	return ckks_vector(seal_ctx, dim, std::move(results));
 }
