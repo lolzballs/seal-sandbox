@@ -54,10 +54,52 @@ TEST_CASE("Vector Functionality", "[vector]") {
 		ckks_vector enc(ctx, pk, vector);
 
 		SECTION("decrypt ckks_vector") {
-			plain_vector dec = enc.decrypt(sk);
+			plain_vector pt = enc.decrypt(sk);
 			
-			std::vector<double> decoded = dec.decode();
+			std::vector<double> decoded = pt.decode();
 			REQUIRE_THAT(decoded, Catch::Approx(items).epsilon(EPSILON));
+		}
+
+		SECTION("ckks_vector addition") {
+			std::vector<double> sum_expected(items.size());
+			std::transform(items.begin(), items.end(), sum_expected.begin(),
+					[](double d) { return d * 2; });
+
+			SECTION("with ciphertext") {
+				ckks_vector sum = enc + enc;
+				plain_vector pt = sum.decrypt(sk);
+				std::vector<double> decoded = pt.decode();
+				REQUIRE_THAT(decoded, Catch::Approx(sum_expected).epsilon(EPSILON));
+			}
+
+			SECTION("with plaintext") {
+				ckks_vector sum = enc + vector;
+				plain_vector pt = sum.decrypt(sk);
+				std::vector<double> decoded = pt.decode();
+				REQUIRE_THAT(decoded, Catch::Approx(sum_expected).epsilon(EPSILON));
+			}
+		}
+
+		SECTION("ckks_vector multiplication") {
+			std::vector<double> sq_expected(items.size());
+			std::transform(items.begin(), items.end(), sq_expected.begin(),
+					[](double d) { return d * d; });
+
+			SECTION("with ciphertext") {
+				ckks_vector sq = enc * enc;
+				plain_vector pt = sq.decrypt(sk);
+				std::vector<double> decoded = pt.decode();
+
+				REQUIRE_THAT(decoded, Catch::Approx(sq_expected).epsilon(EPSILON));
+			}
+
+			SECTION("with plaintext") {
+				ckks_vector sq = enc * vector;
+				plain_vector pt = sq.decrypt(sk);
+				std::vector<double> decoded = pt.decode();
+
+				REQUIRE_THAT(decoded, Catch::Approx(sq_expected).epsilon(EPSILON));
+			}
 		}
 	}
 }
