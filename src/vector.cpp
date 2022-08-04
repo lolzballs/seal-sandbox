@@ -98,3 +98,35 @@ ckks_vector ckks_vector::operator*(const ckks_vector &v) const {
 
 	return ckks_vector(seal_ctx, dim, std::move(results));
 }
+
+ckks_vector ckks_vector::operator+(const plain_vector &v) const {
+	assert(dim == v.dim());
+
+	std::vector<seal::Ciphertext> results;
+	for (size_t i = 0; i < cts.size(); i++) {
+		const seal::Ciphertext &ct_a = cts[i];
+		const seal::Plaintext &pt_b = v[i];
+
+		seal::Ciphertext ct;
+		evaluator.add_plain(ct_a, pt_b, ct);
+		results.emplace_back(std::move(ct));
+	}
+
+	return ckks_vector(seal_ctx, dim, std::move(results));
+}
+
+ckks_vector ckks_vector::operator*(const plain_vector &v) const {
+	assert(dim == v.dim());
+
+	std::vector<seal::Ciphertext> results;
+	for (size_t i = 0; i < cts.size(); i++) {
+		const seal::Ciphertext &ct_a = cts[i];
+		const seal::Plaintext &pt_b = v[i];
+
+		seal::Ciphertext ct;
+		evaluator.multiply_plain(ct_a, pt_b, ct);
+		results.emplace_back(std::move(ct));
+	}
+
+	return ckks_vector(seal_ctx, dim, std::move(results));
+}

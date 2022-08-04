@@ -49,6 +49,8 @@ public:
 
 	ckks_vector operator+(const ckks_vector &v) const;
 	ckks_vector operator*(const ckks_vector &v) const;
+	ckks_vector operator+(const plain_vector &v) const;
+	ckks_vector operator*(const plain_vector &v) const;
 private:
 	std::shared_ptr<seal::SEALContext> seal_ctx;
 	seal::Evaluator evaluator;
